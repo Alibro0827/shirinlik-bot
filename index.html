@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Qiziqarli Dunyo</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#0e1124;--bg2:#171b3a;--card:#1d2248;--text:#f4f5ff;--muted:#a0a6d4;
+  --a1:#7c5cff;--a2:#ff5ca8;--ok:#36d399;--bad:#ff6b6b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{display:flex;flex-direction:column;
+  background:radial-gradient(900px 500px at 10% -10%,#2a2470 0%,transparent 60%),
+             radial-gradient(700px 400px at 100% 0%,#5a1f5e 0%,transparent 55%),var(--bg)}
+header{padding:calc(14px + env(safe-area-inset-top)) 16px 8px}
+header h1{margin:0;font-size:22px;letter-spacing:.2px}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+main{flex:1;overflow-y:auto;padding:8px 16px 96px;-webkit-overflow-scrolling:touch}
+nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:4px;padding:6px;border-radius:22px;
+  background:rgba(29,34,72,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+nav button{flex:1;border:0;background:none;color:var(--muted);padding:8px 0 6px;border-radius:16px;
+  font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
+nav button span{font-size:22px;line-height:1}
+nav button.on{color:#fff;background:linear-gradient(135deg,var(--a1),var(--a2))}
+.search{display:flex;gap:8px;margin:6px 0 10px}
+.search input{flex:1;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.1);
+  background:var(--card);color:var(--text);font-size:16px;outline:none}
+.search button,.btn{border:0;border-radius:14px;padding:12px 16px;color:#fff;font-weight:700;font-size:15px;
+  background:linear-gradient(135deg,var(--a1),var(--a2))}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:999px;background:var(--card);color:var(--muted);
+  border:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:600}
+.chip.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--a1),var(--a2))}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:var(--card);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.06);
+  box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .12s}
+.card:active{transform:scale(.97)}
+.card .pic{aspect-ratio:3/4;background:#10143a center/cover no-repeat;display:flex;align-items:center;
+  justify-content:center;font-size:44px}
+.card .pic.sq{aspect-ratio:1/1}
+.card .t{padding:10px 12px 12px}
+.card .t b{display:block;font-size:13.5px;line-height:1.25;max-height:2.5em;overflow:hidden}
+.card .t small{color:var(--muted);font-size:12px}
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:12px;align-items:center;background:var(--card);padding:10px;border-radius:16px;
+  border:1px solid rgba(255,255,255,.06)}
+.row .pic{width:54px;height:54px;border-radius:12px;background:#10143a center/cover;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:26px}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{color:var(--muted);font-size:12px}
+.msg{text-align:center;color:var(--muted);padding:28px 8px;font-size:14px}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.15);
+  border-top-color:var(--a2);margin:26px auto;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hero{border-radius:22px;padding:18px;margin:4px 0 14px;
+  background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(255,92,168,.85))}
+.hero b{font-size:18px}.hero p{margin:6px 0 0;font-size:13px;opacity:.95}
+.modal{position:fixed;inset:0;background:rgba(5,6,20,.96);z-index:20;display:none;flex-direction:column}
+.modal.on{display:flex}
+.modal .bar{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}
+.modal .bar b{flex:1;font-size:14px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.modal .x{border:0;background:var(--card);color:#fff;border-radius:12px;padding:8px 14px;font-size:15px}
+.modal iframe{flex:1;border:0;width:100%;background:#000}
+/* o'yinlar */
+.gwrap{text-align:center}
+.gwrap h2{margin:6px 0}
+.score{color:var(--muted);margin:4px 0 12px;font-size:14px}
+.mem{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:360px;margin:0 auto}
+.mem div{aspect-ratio:1;border-radius:16px;background:var(--card);display:flex;align-items:center;
+  justify-content:center;font-size:34px;border:1px solid rgba(255,255,255,.08);user-select:none}
+.mem div.up{background:linear-gradient(135deg,var(--a1),var(--a2))}
+.mem div.done{background:rgba(54,211,153,.25);border-color:var(--ok)}
+.q{font-size:38px;font-weight:800;margin:14px 0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:340px;margin:0 auto}
+.opts button{border:0;border-radius:16px;padding:18px 0;font-size:24px;font-weight:800;color:#fff;background:var(--card);
+  border:1px solid rgba(255,255,255,.1)}
+.opts button.ok{background:var(--ok)}.opts button.bad{background:var(--bad)}
+.arena{position:relative;height:340px;border-radius:20px;background:var(--card);overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);max-width:380px;margin:0 auto}
+.arena i{position:absolute;font-style:normal;font-size:44px;user-select:none}
+.back{border:0;background:var(--card);color:#fff;padding:8px 14px;border-radius:12px;margin-bottom:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="appname">🌈 Qiziqarli Dunyo</h1>
+  <p id="sub">Kinolar, kitoblar, musiqa va o'yinlar — hammasi shu yerda</p>
+</header>
+<main id="view"></main>
+<nav id="nav">
+  <button data-t="home" class="on"><span>🏠</span>Bosh</button>
+  <button data-t="movies"><span>🎬</span>Kino</button>
+  <button data-t="books"><span>📚</span>Kitob</button>
+  <button data-t="music"><span>🎵</span>Musiqa</button>
+  <button data-t="games"><span>🎮</span>O'yin</button>
+</nav>
+<div class="modal" id="modal">
+  <div class="bar"><b id="mtitle"></b><button class="x" id="mclose">✕ Yopish</button></div>
+  <iframe id="mframe" allow="autoplay; fullscreen" allowfullscreen></iframe>
+</div>
+
+<script>
+/* ============ SOZLAMALAR (shu yerni o'zgartiring) ============ */
+const CONFIG = {
+  appName: "🌈 Qiziqarli Dunyo",
+  subtitle: "Kinolar, kitoblar, musiqa va o'yinlar — hammasi shu yerda",
+  // Kontent manbalari: Internet Archive (umumiy mulk / ochiq litsenziya) va Project Gutenberg (umumiy mulk kitoblar)
+  movieChips: [
+    {n:"Hammasi",  q:"collection:(feature_films)"},
+    {n:"Multfilm", q:"collection:(animationandcartoons)"},
+    {n:"Klassik",  q:"collection:(feature_films) AND subject:(classic)"},
+    {n:"Hujjatli", q:"collection:(opensource_movies) AND subject:(documentary)"},
+  ],
+  bookLangs: [{n:"English",c:"en"},{n:"Русский",c:"ru"},{n:"Deutsch",c:"de"},{n:"Français",c:"fr"}],
+  musicChips: [
+    {n:"Hammasi", q:"collection:(opensource_audio) AND mediatype:audio"},
+    {n:"Bolalar", q:"collection:(opensource_audio) AND subject:(children)"},
+    {n:"Klassik", q:"collection:(opensource_audio) AND subject:(classical)"},
+    {n:"Instrumental", q:"collection:(opensource_audio) AND subject:(instrumental)"},
+  ],
+};
+/* =============================================================== */
+
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { try { tg.ready(); tg.expand(); tg.setHeaderColor("#0e1124"); tg.setBackgroundColor("#0e1124"); } catch(e){} }
+document.getElementById("appname").textContent = CONFIG.appName;
+document.getElementById("sub").textContent = CONFIG.subtitle;
+
+const $ = s => document.querySelector(s);
+const view = $("#view");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const buzz = (t="light") => { try { tg.HapticFeedback.impactOccurred(t); } catch(e){} };
+const openLink = u => { try { tg.openLink(u); } catch(e){ window.open(u,"_blank"); } };
+const idOk = id => /^[A-Za-z0-9._-]+$/.test(id);
+
+/* ---------- pleyer oynasi ---------- */
+function openPlayer(title, src){
+  $("#mtitle").textContent = title; $("#mframe").src = src; $("#modal").classList.add("on"); buzz();
+}
+$("#mclose").onclick = () => { $("#modal").classList.remove("on"); $("#mframe").src = "about:blank"; };
+
+/* ---------- tarmoq ---------- */
+async function getJSON(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+const loading = () => `<div class="spin"></div>`;
+const failMsg = (retry) => `<div class="msg">😕 Yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.<br><br><button class="btn" onclick="${retry}">🔄 Qayta urinish</button></div>`;
+
+/* ---------- navigatsiya ---------- */
+const tabs = {home, movies, books, music, games};
+function go(name){
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.t === name));
+  view.scrollTop = 0; buzz("light"); tabs[name]();
+}
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => go(b.dataset.t));
+
+/* ---------- BOSH ---------- */
+function home(){
+  const items = [["movies","🎬","Kinolar","Bepul, ochiq kinolar"],["books","📚","Kitoblar","Minglab bepul kitob"],
+                 ["music","🎵","Musiqa","Qo'shiq va kuylar"],["games","🎮","Bolalar o'yinlari","Aqlni charxlaydigan o'yinlar"]];
+  view.innerHTML = `<div class="hero"><b>Xush kelibsiz! 👋</b><p>Pastdagi tugmalar orqali kerakli bo'limni tanlang.</p></div>
+    <div class="grid">${items.map(i => `<div class="card" data-go="${i[0]}"><div class="pic sq">${i[1]}</div>
+      <div class="t"><b>${i[2]}</b><small>${i[3]}</small></div></div>`).join("")}</div>`;
+  view.querySelectorAll("[data-go]").forEach(c => c.onclick = () => go(c.dataset.go));
+}
+
+/* ---------- Internet Archive umumiy qidiruv ---------- */
+async function archiveSearch(q, rows=24){
+  const u = "https://archive.org/advancedsearch.php?q=" + encodeURIComponent(q) +
+    "&fl[]=identifier&fl[]=title&fl[]=year&fl[]=creator&sort[]=downloads+desc&rows=" + rows + "&output=json";
+  const j = await getJSON(u);
+  return (j.response && j.response.docs || []).filter(d => d.identifier && idOk(d.identifier));
+}
+const archImg = id => `https://archive.org/services/img/${encodeURIComponent(id)}`;
+
+/* ---------- KINOLAR ---------- */
+let mChip = 0;
+function movies(){
+  view.innerHTML = `<div class="search"><input id="mq" placeholder="Kino nomini yozing…" enterkeyhint="search"><button id="mgo">🔍</button></div>
+    <div class="chips" id="mchips">${CONFIG.movieChips.map((c,i)=>`<div class="chip ${i===mChip?"on":""}" data-i="${i}">${esc(c.n)}</div>`).join("")}</div>
+    <div id="mres"></div>`;
+  const run = () => loadMovies($("#mq").value.trim());
+  $("#mgo").onclick = run; $("#mq").onkeydown = e => { if(e.key==="Enter") run(); };
+  $("#mchips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; mChip = +c.dataset.i;
+    document.querySelectorAll("#mchips .chip").forEach(x=>x.classList.toggle("on", +x.dataset.i===mChip)); run(); };
+  run();
+}
+async function loadMovies(text){
+  const box = $("#mres"); box.innerHTML = loading();
+  let q = "mediatype:movies AND " + CONFIG.movieChips[mChip].q;
+  if (text) q += " AND title:(" + text.replace(/[^\p{L}\p{N} ]/gu," ") + ")";
+  try{
+    const docs = await archiveSearch(q);
+    if(!docs.length){ box.innerHTML = `<div class="msg">Hech narsa topilmadi 🙈<br>Boshqa nom yozib ko'ring.</div>`; return; }
+    box.innerHTML = `<div class="grid">${docs.map(d=>`<div class="card" data-id="${esc(d.identifier)}" data-t="${esc(d.title)}">
+      <div class="pic" style="background-image:url('${archImg(d.identifier)}')"></div>
+      <div class="t"><b>${esc(d.title)}</b><small>${esc(d.year||"")}</small></div></div>`).join("")}</div>`;
+    box.querySelectorAll(".card").forEach(c => c.onclick = () =>
+      openPlayer(c.dataset.t, "https://archive.org/embed/" + encodeURIComponent(c.dataset.id)));
+  }catch(e){ box.innerHTML = failMsg("loadMovies('')"); }
+}
+
+/* ---------- KITOBLAR (Project Gutenberg, gutendex) ---------- */
+let bLang = 0;
+function books(){
+  view.innerHTML = `<div class="search"><input id="bq" placeholder="Kitob yoki muallif…" enterkeyhint="search"><button id="bgo">🔍</button></div>
+    <div class="chips" id="bchips">${CONFIG.bookLangs.map((c,i)=>`<div class="chip ${i===bLang?"on":""}" data-i="${i}">${esc(c.n)}</div>`).join("")}</div>
+    <div id="bres"></div>`;
+  const run = () => loadBooks($("#bq").value.trim());
+  $("#bgo").onclick = run; $("#bq").onkeydown = e => { if(e.key==="Enter") run(); };
+  $("#bchips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; bLang = +c.dataset.i;
+    document.querySelectorAll("#bchips .chip").forEach(x=>x.classList.toggle("on", +x.dataset.i===bLang)); run(); };
+  run();
+}
+async function loadBooks(text){
+  const box = $("#bres"); box.innerHTML = loading();
+  const u = "https://gutendex.com/books/?languages=" + CONFIG.bookLangs[bLang].c + (text ? "&search=" + encodeURIComponent(text) : "");
+  try{
+    const j = await getJSON(u);
+    const list = (j.results||[]).slice(0,30);
+    if(!list.length){ box.innerHTML = `<div class="msg">Kitob topilmadi 🙈</div>`; return; }
+    box.innerHTML = `<div class="grid">${list.map((b,i)=>{
+      const cover = b.formats && b.formats["image/jpeg"];
+      const au = (b.authors&&b.authors[0]&&b.authors[0].name)||"";
+      return `<div class="card" data-i="${i}"><div class="pic" ${cover?`style="background-image:url('${esc(cover)}')"`:""}>${cover?"":"📖"}</div>
+        <div class="t"><b>${esc(b.title)}</b><small>${esc(au)}</small></div></div>`; }).join("")}</div>`;
+    box.querySelectorAll(".card").forEach(c => c.onclick = () => {
+      const f = list[+c.dataset.i].formats || {};
+      const link = f["text/html"] || f["text/html; charset=utf-8"] || f["application/epub+zip"] || f["text/plain; charset=utf-8"];
+      if(link) { buzz(); openLink(link); }
+    });
+  }catch(e){ box.innerHTML = failMsg("loadBooks('')"); }
+}
+
+/* ---------- MUSIQA ---------- */
+let muChip = 0;
+function music(){
+  view.innerHTML = `<div class="search"><input id="uq" placeholder="Qo'shiq yoki ijrochi…" enterkeyhint="search"><button id="ugo">🔍</button></div>
+    <div class="chips" id="uchips">${CONFIG.musicChips.map((c,i)=>`<div class="chip ${i===muChip?"on":""}" data-i="${i}">${esc(c.n)}</div>`).join("")}</div>
+    <div id="ures"></div>`;
+  const run = () => loadMusic($("#uq").value.trim());
+  $("#ugo").onclick = run; $("#uq").onkeydown = e => { if(e.key==="Enter") run(); };
+  $("#uchips").onclick = e => { const c = e.target.closest(".chip"); if(!c) return; muChip = +c.dataset.i;
+    document.querySelectorAll("#uchips .chip").forEach(x=>x.classList.toggle("on", +x.dataset.i===muChip)); run(); };
+  run();
+}
+async function loadMusic(text){
+  const box = $("#ures"); box.innerHTML = loading();
+  let q = CONFIG.musicChips[muChip].q;
+  if (text) q += " AND title:(" + text.replace(/[^\p{L}\p{N} ]/gu," ") + ")";
+  try{
+    const docs = await archiveSearch(q, 30);
+    if(!docs.length){ box.innerHTML = `<div class="msg">Hech narsa topilmadi 🙈</div>`; return; }
+    box.innerHTML = `<div class="list">${docs.map(d=>`<div class="row" data-id="${esc(d.identifier)}" data-t="${esc(d.title)}">
+      <div class="pic" style="background-image:url('${archImg(d.identifier)}')"></div>
+      <div class="t"><b>${esc(d.title)}</b><small>${esc(Array.isArray(d.creator)?d.creator[0]:(d.creator||""))}</small></div><div>▶️</div></div>`).join("")}</div>`;
+    box.querySelectorAll(".row").forEach(c => c.onclick = () =>
+      openPlayer(c.dataset.t, "https://archive.org/embed/" + encodeURIComponent(c.dataset.id)));
+  }catch(e){ box.innerHTML = failMsg("loadMusic('')"); }
+}
+
+/* ---------- O'YINLAR ---------- */
+let timer = null;
+function stopTimers(){ if(timer){ clearInterval(timer); timer=null; } }
+function games(){
+  stopTimers();
+  const g = [["memory","🧠","Xotira o'yini","Juft rasmlarni toping"],["math","➕","Matematika","Tez hisoblang"],["catch","🎯","Tutib ol","20 soniyada ko'proq ushlang"]];
+  view.innerHTML = `<div class="hero"><b>🎮 Bolajonlar uchun o'yinlar</b><p>Reklamasiz, oddiy va foydali o'yinlar.</p></div>
+    <div class="list">${g.map(x=>`<div class="row" data-g="${x[0]}"><div class="pic">${x[1]}</div>
+      <div class="t"><b>${x[2]}</b><small>${x[3]}</small></div><div>▶️</div></div>`).join("")}</div>`;
+  view.querySelectorAll("[data-g]").forEach(r => r.onclick = () => { buzz(); ({memory,math:mathGame,catch:catchGame})[r.dataset.g](); });
+}
+const backBtn = `<button class="back" onclick="games()">⬅️ O'yinlar</button>`;
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+function memory(){
+  stopTimers();
+  const em = shuffle(["🐶","🐱","🐼","🦁","🐸","🐵","🦄","🐙"]); const cards = shuffle([...em,...em]);
+  let open = [], found = 0, moves = 0, lock = false;
+  view.innerHTML = `${backBtn}<div class="gwrap"><h2>🧠 Xotira o'yini</h2><div class="score" id="sc">Yurishlar: 0</div>
+    <div class="mem" id="mb">${cards.map((c,i)=>`<div data-i="${i}">❓</div>`).join("")}</div></div>`;
+  $("#mb").onclick = e => {
+    const d = e.target.closest("[data-i]"); if(!d || lock) return; const i = +d.dataset.i;
+    if(d.classList.contains("up") || d.classList.contains("done")) return;
+    d.classList.add("up"); d.textContent = cards[i]; open.push(d); buzz();
+    if(open.length === 2){
+      moves++; $("#sc").textContent = "Yurishlar: " + moves;
+      const [a,b] = open;
+      if(cards[+a.dataset.i] === cards[+b.dataset.i]){
+        a.className = b.className = "done"; open = []; found++;
+        if(found === 8){ $("#sc").textContent = `🎉 Barakalla! ${moves} yurishda topdingiz!`; try{tg.HapticFeedback.notificationOccurred("success");}catch(e){} }
+      } else { lock = true; setTimeout(()=>{ [a,b].forEach(x=>{x.className="";x.textContent="❓";}); open=[]; lock=false; }, 700); }
+    }
+  };
+}
+function mathGame(){
+  stopTimers(); let n = 0, score = 0; const N = 10;
+  const next = () => {
+    if(n >= N){ view.innerHTML = `${backBtn}<div class="gwrap"><h2>🏆 Natija</h2><div class="q">${score} / ${N}</div>
+      <p class="score">${score>=8?"Ajoyib! 🌟":score>=5?"Yaxshi! 👍":"Yana urinib ko'ring 💪"}</p><button class="btn" onclick="mathGame()">🔄 Qaytadan</button></div>`; return; }
+    const ops = ["+","−","×"]; const op = ops[Math.floor(Math.random()*(n<4?2:3))]; let a,b,ans;
+    if(op==="+"){a=1+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*20);ans=a+b;}
+    else if(op==="−"){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;}
+    else {a=2+Math.floor(Math.random()*9);b=2+Math.floor(Math.random()*9);ans=a*b;}
+    const set = new Set([ans]); while(set.size<4){ const v = ans + Math.floor(Math.random()*11) - 5; if(v>=0) set.add(v); }
+    const opts = shuffle([...set]);
+    view.innerHTML = `${backBtn}<div class="gwrap"><h2>➕ Matematika</h2><div class="score">Savol ${n+1}/${N} · Ball: ${score}</div>
+      <div class="q">${a} ${op} ${b} = ?</div><div class="opts">${opts.map(o=>`<button data-v="${o}">${o}</button>`).join("")}</div></div>`;
+    view.querySelector(".opts").onclick = e => { const bt = e.target.closest("button"); if(!bt) return;
+      const ok = +bt.dataset.v === ans; bt.classList.add(ok?"ok":"bad"); if(ok) score++; n++; buzz();
+      view.querySelectorAll(".opts button").forEach(x=>x.disabled=true); setTimeout(next, 600); };
+  };
+  next();
+}
+function catchGame(){
+  stopTimers(); let score = 0, left = 20;
+  view.innerHTML = `${backBtn}<div class="gwrap"><h2>🎯 Tutib ol</h2><div class="score" id="sc">Ball: 0 · Vaqt: 20</div><div class="arena" id="ar"></div></div>`;
+  const ar = $("#ar"); const pool = ["🐞","🦋","⭐","🍎","🎈","🍭"];
+  const spawn = () => {
+    const i = document.createElement("i"); i.textContent = pool[Math.floor(Math.random()*pool.length)];
+    i.style.left = Math.random()*(ar.clientWidth-50) + "px"; i.style.top = Math.random()*(ar.clientHeight-50) + "px";
+    i.onpointerdown = () => { score++; buzz(); i.remove(); $("#sc").textContent = `Ball: ${score} · Vaqt: ${left}`; };
+    ar.appendChild(i); setTimeout(()=>i.remove(), 1100);
+  };
+  timer = setInterval(() => {
+    left--; if(left % 1 === 0) spawn(); if(Math.random()<.6) spawn();
+    $("#sc").textContent = `Ball: ${score} · Vaqt: ${left}`;
+    if(left <= 0){ stopTimers(); ar.innerHTML = `<div class="q" style="margin-top:110px">🎉 ${score} ball!</div><button class="btn" onclick="catchGame()">🔄 Qaytadan</button>`; }
+  }, 1000);
+  spawn();
+}
+
+home();
+</script>
+</body>
+</html>
